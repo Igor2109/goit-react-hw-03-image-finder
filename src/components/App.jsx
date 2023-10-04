@@ -15,7 +15,17 @@ export class App extends Component {
     error: null,
     isModalOpen: false,
     selectedImageURL: '',
+    hasMoreImages: true,
   };
+
+  componentDidUpdate(_, prevState) {
+    if (
+      this.state.query !== prevState.query ||
+      this.state.page !== prevState.page
+    ) {
+      this.loadImages();
+    }
+  }
   handleSearchSubmit = query => {
     if (!query.trim()) {
       alert('Please enter a valid search query.');
@@ -24,20 +34,23 @@ export class App extends Component {
 
     this.setState(
       { query, images: [], page: 1, isLoading: true, error: null },
-      () => {
-        this.loadImages();
-      }
+      // () => {
+      //   this.loadImages();
+      // }
     );
   };
 
   loadImages = async () => {
     const { query, page } = this.state;
-
+  
     try {
       const newImages = await handleSearch(query, page);
+      if (newImages.length === 0) {
+        this.setState({ hasMoreImages: false });
+        return;
+      }
       this.setState(prevState => ({
         images: [...prevState.images, ...newImages],
-        page: prevState.page + 1,
       }));
     } catch (error) {
       this.setState({ error });
@@ -46,10 +59,12 @@ export class App extends Component {
       this.setState({ isLoading: false });
     }
   };
-
+  
   loadMoreImages = () => {
-    this.loadImages();
-  };
+    this.setState(prevState => ({
+      page: prevState.page + 1,
+    }));
+};
 
   openModal = imageURL => {
     this.setState({
@@ -82,7 +97,7 @@ export class App extends Component {
           ))}
         </ImageGallery>
         {isLoading ? <Loader /> : null}
-        {images.length > 0 && !isLoading && (
+        {images.length > 0 && !isLoading && this.state.hasMoreImages && (
           <Button onClick={this.loadMoreImages} />
         )}
         {error && <p className={CSS.Error}>Error loading images.</p>}
