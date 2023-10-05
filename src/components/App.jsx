@@ -15,7 +15,8 @@ export class App extends Component {
     error: null,
     isModalOpen: false,
     selectedImageURL: '',
-    hasMoreImages: true,
+    loadMore: false,
+    tags: '',
   };
 
   componentDidUpdate(_, prevState) {
@@ -32,44 +33,39 @@ export class App extends Component {
       return;
     }
 
-    this.setState(
-      { query, images: [], page: 1, isLoading: true, error: null },
-      // () => {
-      //   this.loadImages();
-      // }
-    );
+    this.setState({ query, images: [], page: 1 });
   };
 
   loadImages = async () => {
     const { query, page } = this.state;
-  
+
     try {
-      const newImages = await handleSearch(query, page);
-      if (newImages.length === 0) {
-        this.setState({ hasMoreImages: false });
-        return;
+      const { hits, totalHits } = await handleSearch(query, page);
+      if (hits.length === 0) {
+        return alert('Not find');
       }
       this.setState(prevState => ({
-        images: [...prevState.images, ...newImages],
+        images: [...prevState.images, ...hits],
+        loadMore: page < Math.ceil(totalHits / 12),
       }));
     } catch (error) {
       this.setState({ error });
-      console.error('Error loading images:', error);
     } finally {
       this.setState({ isLoading: false });
     }
   };
-  
+
   loadMoreImages = () => {
     this.setState(prevState => ({
       page: prevState.page + 1,
     }));
-};
+  };
 
-  openModal = imageURL => {
+  openModal = (imageURL, tags) => {
     this.setState({
       isModalOpen: true,
       selectedImageURL: imageURL,
+      tags,
     });
   };
 
@@ -77,35 +73,30 @@ export class App extends Component {
     this.setState({
       isModalOpen: false,
       selectedImageURL: '',
+      tags: '',
     });
   };
 
   render() {
-    const { images, isLoading, error, isModalOpen, selectedImageURL } =
+    const { images, isLoading, error, isModalOpen, selectedImageURL, tags, loadMore } =
       this.state;
 
     return (
       <div className={CSS.App}>
+       
         <Searchbar onSubmit={this.handleSearchSubmit} />
-        <ImageGallery>
-          {images.map(image => (
-            <ImageGalleryItem
-              key={image.id}
-              image={image}
-              onClick={() => this.openModal(image.largeImageURL)}
-            />
-          ))}
-        </ImageGallery>
-        {isLoading ? <Loader /> : null}
-        {images.length > 0 && !isLoading && this.state.hasMoreImages && (
+        {images.length>0 && <ImageGallery images={images} openModal={this.openModal}/>}
+        
+        {isLoading && <Loader /> }
+        {loadMore && !isLoading && images.length > 0 &&  (
           <Button onClick={this.loadMoreImages} />
         )}
-        {error && <p className={CSS.Error}>Error loading images.</p>}
+        {error && <p className={CSS.Error}>Somthing went wrong</p>}
         {isModalOpen && (
           <Modal
-            isOpen={isModalOpen}
             imageURL={selectedImageURL}
             onClose={this.closeModal}
+            tags={tags}
           />
         )}
       </div>

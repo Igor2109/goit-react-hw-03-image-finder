@@ -8,7 +8,7 @@ export class ImageGalleryItem extends Component {
         <li className='ImageGalleryItem' onClick={onClick}>
           <img
             src={image.webformatURL}
-            alt={image.user}
+            alt={image.tags}
             className='ImageGalleryItem-image'
           />
         </li>

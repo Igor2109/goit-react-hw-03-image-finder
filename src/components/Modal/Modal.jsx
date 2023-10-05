@@ -21,16 +21,13 @@ export class Modal extends Component {
   };
 
   render() {
-    const { isOpen, imageURL } = this.props;
+    const {imageURL, tags} = this.props;
 
-    if (!isOpen) {
-      return null;
-    }
 
     return (
       <div className='Overlay' onClick={this.onOverlayClick}>
         <div className='Modal'>
-          <img src={imageURL} alt="images" width={800} />
+          <img src={imageURL} alt={tags} width={800} />
         </div>
       </div>
     );

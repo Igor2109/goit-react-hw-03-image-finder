@@ -1,10 +1,15 @@
-import React, { Component } from 'react';
+import { ImageGalleryItem } from 'components/ImageGalleryItem/ImageGalleryItem';
 
-export class ImageGallery extends Component {
-  
-    render() {
-      const { children } = this.props;
-  
-      return <ul className='ImageGallery'>{children}</ul>;
-    }
-  }
+export const ImageGallery = ({ images, openModal }) => {
+  return (
+    <ul className="ImageGallery">
+      {images.map(image => (
+        <ImageGalleryItem
+          key={image.id}
+          image={image}
+          onClick={() => openModal(image.largeImageURL, image.tags)}
+        />
+      ))}
+    </ul>
+  );
+};
